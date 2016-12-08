@@ -1,15 +1,55 @@
 #include <iostream>
+#include <vector>
+#include <curses.h>
 #include <libusb-1.0/libusb.h>
 
 const uint16_t vendor_id = 0x43e;
 const uint16_t product_id = 0x9a40;
 const uint16_t max_brightness = 0xd2f0;
 const uint16_t min_brightness = 0x0190;
-const uint16_t step0 = 0x0064; // total 536 steps
-const uint16_t step1 = 0x0218; // total 100 steps
-const uint16_t step2 = 0x14f0; // total 10 steps
+const std::vector<uint16_t> small_steps = {
+        0x0190, 0x01af, 0x01d2, 0x01f7,
+        0x021f, 0x024a, 0x0279, 0x02ac,
+        0x02e2, 0x031d, 0x035c, 0x03a1,
+        0x03eb, 0x043b, 0x0491, 0x04ee,
+        0x0553, 0x05c0, 0x0635, 0x06b3,
+        0x073c, 0x07d0, 0x086f, 0x091b,
+        0x09d5, 0x0a9d, 0x0b76, 0x0c60,
+        0x0d5c, 0x0e6c, 0x0f93, 0x10d0,
+        0x1227, 0x1399, 0x1529, 0x16d9,
+        0x18aa, 0x1aa2, 0x1cc1, 0x1f0b,
+        0x2184, 0x2430, 0x2712, 0x2a2e,
+        0x2d8b, 0x312b, 0x3516, 0x3951,
+        0x3de2, 0x42cf, 0x4822, 0x4de1,
+        0x5415, 0x5ac8, 0x6203, 0x69d2,
+        0x7240, 0x7b5a, 0x852d, 0x8fc9,
+        0x9b3d, 0xa79b, 0xb4f5, 0xc35f,
+        0xd2f0,
+};
+const std::vector<uint16_t> big_steps = {
+        0x0190, 0x021f, 0x02e2, 0x03eb,
+        0x0553, 0x073c, 0x09d5, 0x0d5c,
+        0x1227, 0x18aa, 0x2184, 0x2d8b,
+        0x3de2, 0x5415, 0x7240, 0x9b3d,
+        0xd2f0,
+};
 
-const size_t LEN = 64;
+auto next_step = [](uint16_t val, auto &steps) {
+    for (auto step : steps) {
+        if (step > val) {
+            return step;
+        }
+    }
+    return steps.back();
+};
+auto prev_step = [](uint16_t val, auto &steps) {
+    for (auto it = steps.rbegin(); it != steps.rend(); ++it) {
+        if (*it < val) {
+            return *it;
+        }
+    }
+    return steps.front();
+};
 
 int main() {
     int r = libusb_init(nullptr);
@@ -44,7 +84,43 @@ int main() {
                + (uint16_t(data[1]) << 8);
     };
 
-    set_brightness(get_brightness());
+    auto brightness = get_brightness();
+    initscr();
+    addstr("Press '-' or '=' to adjust brightness.\n");
+    addstr("Press '[' or: ']' to fine tune.\n");
+    addstr("Press 'q' to quit.\n");
+    addstr("Input: ");
+    
+    timeout(-1);
+    noecho();
+    while (true) {
+        int c = getch();
+        if (c == 'q') {
+            break;
+        }
+        switch (c) {
+            case '+':
+            case '=':
+                brightness = next_step(brightness, big_steps);
+                set_brightness(brightness);
+                break;
+            case '-':
+            case '_':
+                brightness = prev_step(brightness, big_steps);
+                set_brightness(brightness);
+                break;
+            case ']':
+                brightness = next_step(brightness, small_steps);
+                set_brightness(brightness);
+                break;
+            case '[':
+                brightness = prev_step(brightness, small_steps);
+                set_brightness(brightness);
+                break;
+            default:
+                break;
+        }
+    }
 
     libusb_close(hdev);
     libusb_exit(nullptr);

@@ -8,4 +8,4 @@ link_directories(/usr/local/lib)
 
 set(SOURCE_FILES main.cpp)
 add_executable(lguf_brightness ${SOURCE_FILES})
-target_link_libraries(lguf_brightness usb-1.0)
+target_link_libraries(lguf_brightness usb-1.0 curses)
