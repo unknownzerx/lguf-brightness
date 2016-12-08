@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include <libusb-1.0/libusb.h>
 
 const uint16_t vendor_id = 0x43e;
@@ -44,7 +45,15 @@ int main() {
                + (uint16_t(data[1]) << 8);
     };
 
-    set_brightness(get_brightness());
+    std::string line;
+    while (true) {
+        std::getline(std::cin, line);
+        if ((not line.empty()) && (line[0] == 'q')) {
+            break;
+        }
+        printf("%04x", get_brightness());
+        std::cout << std::endl;
+    }
 
     libusb_close(hdev);
     libusb_exit(nullptr);
