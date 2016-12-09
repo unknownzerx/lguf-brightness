@@ -51,16 +51,25 @@ auto prev_step = [](uint16_t val, auto &steps) {
     return steps.front();
 };
 
+void print_fail_getch() {
+    printw("Failed to open the device. Press any key to exit: ");
+    getch();
+}
+
 int main() {
-    int r = libusb_init(nullptr);
-    if (r < 0) {
-        std::cout << "Failed to open the device" << std::endl;
+    initscr();
+    timeout(-1);
+    noecho();
+
+    if (libusb_init(nullptr) < 0) {
+        print_fail_getch();
         return EXIT_FAILURE;
     }
 
     libusb_device_handle *hdev = libusb_open_device_with_vid_pid(nullptr, vendor_id, product_id);
     if (hdev == nullptr) {
-        std::cout << "Failed to open the device" << std::endl;
+        libusb_exit(nullptr);
+        print_fail_getch();
         return EXIT_FAILURE;
     }
 
@@ -85,19 +94,14 @@ int main() {
     };
 
     auto brightness = get_brightness();
-    initscr();
-    addstr("Press '-' or '=' to adjust brightness.\n");
-    addstr("Press '[' or: ']' to fine tune.\n");
-    addstr("Press 'q' to quit.\n");
-    addstr("Input: ");
+    printw("Press '-' or '=' to adjust brightness.\n");
+    printw("Press '[' or: ']' to fine tune.\n");
+    printw("Press 'q' or Enter to quit.\n");
+    printw("Input: ");
     
-    timeout(-1);
-    noecho();
-    while (true) {
+    bool stop = false;
+    while (not stop) {
         int c = getch();
-        if (c == 'q') {
-            break;
-        }
         switch (c) {
             case '+':
             case '=':
@@ -116,6 +120,10 @@ int main() {
             case '[':
                 brightness = prev_step(brightness, small_steps);
                 set_brightness(brightness);
+                break;
+            case 'q':
+            case '\n':
+                stop = true;
                 break;
             default:
                 break;
