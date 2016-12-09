@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <curses.h>
-#include <libusb-1.0/libusb.h>
+#include <libusb.h>
 
 const uint16_t vendor_id = 0x43e;
 const uint16_t product_id = 0x9a40;

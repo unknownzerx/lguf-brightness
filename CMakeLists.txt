@@ -3,9 +3,10 @@ project(lguf_brightness)
 
 set(CMAKE_CXX_STANDARD 14)
 
-include_directories(/usr/local/include)
-link_directories(/usr/local/lib)
+set(libusb_1_FIND_REQUIRED TRUE)
+include(${PROJECT_SOURCE_DIR}/cmake/Findlibusb-1.0.cmake)
+include_directories(${LIBUSB_1_INCLUDE_DIRS})
 
 set(SOURCE_FILES main.cpp)
 add_executable(lguf_brightness ${SOURCE_FILES})
-target_link_libraries(lguf_brightness usb-1.0 curses)
+target_link_libraries(lguf_brightness ${LIBUSB_1_LIBRARIES} curses)
