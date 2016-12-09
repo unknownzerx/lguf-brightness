@@ -1,6 +1,6 @@
 #include <iostream>
 #include <vector>
-#include <curses.h>
+#include <conio.h>
 #include <libusb.h>
 
 const uint16_t vendor_id = 0x43e;
@@ -85,16 +85,13 @@ int main() {
     };
 
     auto brightness = get_brightness();
-    initscr();
-    addstr("Press '-' or '=' to adjust brightness.\n");
-    addstr("Press '[' or: ']' to fine tune.\n");
-    addstr("Press 'q' to quit.\n");
-    addstr("Input: ");
+    printf("Press '-' or '=' to adjust brightness.\n");
+    printf("Press '[' or: ']' to fine tune.\n");
+    printf("Press 'q' to quit.\n");
+    printf("Input: ");
     
-    timeout(-1);
-    noecho();
     while (true) {
-        int c = getch();
+        int c = _getch();
         if (c == 'q') {
             break;
         }
