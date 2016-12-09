@@ -54,13 +54,14 @@ auto prev_step = [](uint16_t val, auto &steps) {
 int main() {
     int r = libusb_init(nullptr);
     if (r < 0) {
-        std::cout << "Failed to open the device" << std::endl;
+        std::cout << "Failed to open the device (libusb_init failed)" << std::endl;
         return EXIT_FAILURE;
     }
-
+	libusb_device **devs;
+	libusb_get_device_list(NULL, &devs);
     libusb_device_handle *hdev = libusb_open_device_with_vid_pid(nullptr, vendor_id, product_id);
     if (hdev == nullptr) {
-        std::cout << "Failed to open the device" << std::endl;
+        std::cout << "Failed to open the device (open_device failed)" << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -118,9 +119,9 @@ int main() {
                 break;
         }
     }
-
     libusb_close(hdev);
-    libusb_exit(nullptr);
+	libusb_free_device_list(devs, 1);
+	libusb_exit(nullptr);
 
     return 0;
 }
