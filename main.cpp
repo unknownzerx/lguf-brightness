@@ -56,11 +56,7 @@ void print_fail_getch() {
     getch();
 }
 
-int main() {
-    initscr();
-    timeout(-1);
-    noecho();
-
+int main(int argc, char **argv) {
     if (libusb_init(nullptr) < 0) {
         print_fail_getch();
         return EXIT_FAILURE;
@@ -92,44 +88,53 @@ int main() {
         return uint16_t(data[0])
                + (uint16_t(data[1]) << 8);
     };
-
-    auto brightness = get_brightness();
-    printw("Press '-' or '=' to adjust brightness.\n");
-    printw("Press '[' or: ']' to fine tune.\n");
-    printw("Press 'q' or Enter to quit.\n");
-    printw("Input: ");
     
-    bool stop = false;
-    while (not stop) {
-        int c = getch();
-        switch (c) {
-            case '+':
-            case '=':
-                brightness = next_step(brightness, big_steps);
-                set_brightness(brightness);
-                break;
-            case '-':
-            case '_':
-                brightness = prev_step(brightness, big_steps);
-                set_brightness(brightness);
-                break;
-            case ']':
-                brightness = next_step(brightness, small_steps);
-                set_brightness(brightness);
-                break;
-            case '[':
-                brightness = prev_step(brightness, small_steps);
-                set_brightness(brightness);
-                break;
-            case 'q':
-            case '\n':
-                stop = true;
-                break;
-            default:
-                break;
+    if (argc > 1) {
+        set_brightness(get_brightness()); // reset brightness for resolving a possible hardware bug
+    } else {
+
+        initscr();
+        timeout(-1);
+        noecho();
+
+        auto brightness = get_brightness();
+        printw("Press '-' or '=' to adjust brightness.\n");
+        printw("Press '[' or: ']' to fine tune.\n");
+        printw("Press 'q' or Enter to quit.\n");
+        printw("Input: ");
+
+        bool stop = false;
+        while (not stop) {
+            int c = getch();
+            switch (c) {
+                case '+':
+                case '=':
+                    brightness = next_step(brightness, big_steps);
+                    set_brightness(brightness);
+                    break;
+                case '-':
+                case '_':
+                    brightness = prev_step(brightness, big_steps);
+                    set_brightness(brightness);
+                    break;
+                case ']':
+                    brightness = next_step(brightness, small_steps);
+                    set_brightness(brightness);
+                    break;
+                case '[':
+                    brightness = prev_step(brightness, small_steps);
+                    set_brightness(brightness);
+                    break;
+                case 'q':
+                case '\n':
+                    stop = true;
+                    break;
+                default:
+                    break;
+            }
         }
     }
-
+    
     libusb_close(hdev);
     libusb_exit(nullptr);
 
