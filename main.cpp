@@ -134,9 +134,11 @@ int main(int argc, char **argv) {
             }
         }
     }
+
+    endwin();
     
     libusb_close(hdev);
     libusb_exit(nullptr);
-
+    
     return 0;
 }
